@@ -171,7 +171,7 @@ export class RpcWsConnection {
     }
 
     async unsubscribe(subscriptionId: string): Promise<boolean> {
-        await this.call("unsubscribe", subscriptionId)
+        await this.call("unsubscribe", [subscriptionId])
 
         return this.subscriptionMap.delete(subscriptionId)
     }

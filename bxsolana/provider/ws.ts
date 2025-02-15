@@ -141,8 +141,9 @@ import {
     GetLeaderScheduleResponse,
 } from "../proto/messages/api"
 import { BaseProvider } from "./base"
-import { RpcWsConnection } from "../ws/rpcclient"
+import { CallbackOnClose, CallbackOnError, RpcWsConnection } from "../ws/rpcclient"
 import { RpcReturnType } from "../proto/runtime/rpc"
+
 
 export class WsProvider extends BaseProvider {
     private wsConnection: RpcWsConnection
@@ -175,6 +176,14 @@ export class WsProvider extends BaseProvider {
     close = () => {
         this.isClosed = true
         this.wsConnection.close()
+    }
+
+    setOnErrorCallback(cb: CallbackOnError) {
+        this.wsConnection.setOnErrorCallback(cb);
+    }
+
+    setOnCloseCallback(cb: CallbackOnClose) {
+        this.wsConnection.setOnCloseCallback(cb);
     }
 
     async getRateLimit(

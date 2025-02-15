@@ -16,6 +16,9 @@ type MessageEvent<T> = {
     data: T
 }
 
+export type CallbackOnError = (error: WebSocket.ErrorEvent) => void;
+export type CallbackOnClose = (event: WebSocket.CloseEvent) => void;
+
 export class RpcWsConnection {
     private socket?: WebSocket
     private readonly address: string
@@ -28,6 +31,9 @@ export class RpcWsConnection {
     private subscriptionMap: Map<string, SubscriptionResolver> = new Map()
     // eslint-disable-next-line
     queue: AsyncBlockingQueue<any> = new AsyncBlockingQueue<any>()
+
+    private cbOnError: CallbackOnError | undefined;
+    private cbOnClose: CallbackOnClose | undefined;
 
     constructor(address: string, authHeader: string) {
         this.address = address
@@ -89,8 +95,18 @@ export class RpcWsConnection {
             }
         }
 
-        socket.onerror = () => {
+        socket.onerror = (e: WebSocket.ErrorEvent) => {
             this.socket = undefined
+            
+            if (typeof this.cbOnError !== "undefined") {
+                this.cbOnError(e);
+            }
+        }
+
+        socket.onclose = (e: WebSocket.CloseEvent) => {
+            if (typeof this.cbOnClose !== "undefined") {
+                this.cbOnClose(e);
+            }
         }
 
         await connected
@@ -101,6 +117,14 @@ export class RpcWsConnection {
             clearInterval(this.pingInterval)
         }
         this.socket?.close()
+    }
+
+    setOnErrorCallback(cb: CallbackOnError) {
+        this.cbOnError = cb;
+    }
+
+    setOnCloseCallback(cb: CallbackOnClose) {
+        this.cbOnClose = cb;
     }
 
     async call<T, R>(methodName: string, methodParams: T): Promise<R> {

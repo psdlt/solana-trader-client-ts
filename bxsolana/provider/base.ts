@@ -170,11 +170,17 @@ export abstract class BaseProvider implements Api {
     protected privateKey?: Keypair
     protected authHeader: string
 
+    private v = "2.2.4";
+
     protected constructor(authHeader: string, privateKey?: string) {
         this.authHeader = authHeader
         if (privateKey) {
             this.privateKey = Keypair.fromSecretKey(base58.decode(privateKey))
         }
+    }
+
+    version() {
+        return this.v;
     }
 
     // Openbook V2
